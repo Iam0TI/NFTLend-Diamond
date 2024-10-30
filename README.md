@@ -1,6 +1,8 @@
 # NFTLend Protocol
 
 NFTLend is a decentralized P2P lending protocol that facilitates NFT-collateralized loans on the blockchain. The protocol enables NFT holders to unlock liquidity from their assets while retaining eventual ownership.
+> Here is a State diagram
+ ![image](https://github.com/user-attachments/assets/f019ea55-9b4e-4c03-8bd7-8f5df0f1ddfc)
 
 ## Core Features
 
