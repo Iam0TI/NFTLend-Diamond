@@ -19,7 +19,7 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
     function testDeployDiamond() public {
         //deploy facets
         dCutFacet = new DiamondCutFacet();
-        diamond = new Diamond(address(this), address(dCutFacet));
+        diamond = new Diamond(address(this), address(dCutFacet), "NFTLEND", "NTFLEND");
         dLoupe = new DiamondLoupeFacet();
         ownerF = new OwnershipFacet();
 
@@ -51,9 +51,5 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
         DiamondLoupeFacet(address(diamond)).facetAddresses();
     }
 
-    function diamondCut(
-        FacetCut[] calldata _diamondCut,
-        address _init,
-        bytes calldata _calldata
-    ) external override {}
+    function diamondCut(FacetCut[] calldata _diamondCut, address _init, bytes calldata _calldata) external override {}
 }

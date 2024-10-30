@@ -36,6 +36,65 @@ library LibDiamond {
         uint256 facetAddressPosition; // position of facetAddress in facetAddresses array
     }
 
+    // Enum to track the status of the loan
+    enum LoanStatus {
+        NotActive, // Default status, meaning the loan is not active
+        Active, // Loan is currently active
+        Repaid, // Loan has been fully repaid
+        Liquidated // Loan has  been liquidated
+
+    }
+
+    enum ListingStatus {
+        NotActive,
+        Active,
+        Cancelled,
+        Executed
+    }
+    enum OfferStatus {
+        Inactive,
+        Active,
+        Cancelled,
+        Accepted
+    }
+
+    struct Offer {
+        uint256 offerId;
+        uint256 listingId;
+        address lender;
+        uint256 loanPrincipalAmount;
+        uint256 maximumRepaymentAmount;
+        uint32 loanDuration;
+        uint32 loanInterestRate;
+        OfferStatus status;
+    }
+
+    struct Listing {
+        address nftCollateralContract;
+        uint256 nftCollateralId;
+        address loanERC20Address;
+        uint256 loanPrincipalAmount;
+        uint256 maximumRepaymentAmount;
+        uint32 loanDuration;
+        uint32 loanInterestRate;
+        address borrower;
+        ListingStatus status;
+    }
+
+    struct Loan {
+        uint256 loanId; // Unique identifier for the loan
+        uint256 loanPrincipalAmount; // Amount borrowed
+        uint256 maximumRepaymentAmount; // Maximum amount to repay
+        uint256 nftCollateralId; // ID of the NFT used as collateral
+        uint256 loanStartTime; // Timestamp when the loan started
+        uint32 loanDuration; // Duration of the loan
+        uint32 loanInterestRate; // Interest rate for the loan
+        address nftCollateralContract; // Address of the NFT collateral contract
+        address loanERC20Address; // Address of the ERC20 currency contract
+        address borrower; // Borrower's address
+        LoanStatus status; // Current status of the loan
+    }
+
     struct DiamondStorage {
         // maps function selector to the facet address and
         // the position of the selector in the facetFunctionSelectors.selectors array
@@ -53,12 +112,22 @@ library LibDiamond {
         string _name;
         // Token symbol
         string _symbol;
-        // index
-        uint256 index;
         mapping(uint256 tokenId => address) _owners;
         mapping(address owner => uint256) _balances;
         mapping(uint256 tokenId => address) _tokenApprovals;
         mapping(address owner => mapping(address operator => bool)) _operatorApprovals;
+        // whitelisted ERC20s avaliable for lending
+        mapping(address tokenAddress => bool isWhitelisted) whitelistedERC20s;
+        // whitelisted ERC721s avaliable for collateral
+        mapping(address nftAddress => bool isWhitelisted) whitelistedERC721s;
+        // Counter for loan IDs
+        uint256 loanId;
+        uint256 listingId;
+        uint256 offerId;
+        // loanid to  Loan struct
+        mapping(uint256 loanId => Loan loan) loans;
+        mapping(uint256 listingId => Listing listing) listings;
+        mapping(uint256 offerId => Offer offer) offers;
     }
 
     function diamondStorage() internal pure returns (DiamondStorage storage ds) {
