@@ -37,6 +37,12 @@ contract NFTLendFacet is ERC721Facet {
         _;
     }
 
+    modifier loanExists(uint256 loanId) {
+        LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
+        require(loanId < l.loanId, Errors.LoanDoesNotExist());
+        _;
+    }
+
     struct ListingParams {
         address nftCollateralContract;
         uint256 nftCollateralId;
@@ -209,6 +215,69 @@ contract NFTLendFacet is ERC721Facet {
         );
     }
 
+    function payBackLoan(uint256 _loanId) external {
+        LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
+        LibDiamond.Loan storage loan = l.loans[_loanId];
+
+        require(loan.status == LibDiamond.LoanStatus.Active, Errors.LoanNotactive());
+        require(loan.borrower == msg.sender, Errors.NotLoanBorrower());
+
+        uint256 timeElapsed = block.timestamp - loan.loanStartTime;
+        uint256 interest = _calculateInterest(loan.loanPrincipalAmount, loan.loanInterestRate, timeElapsed);
+
+        uint256 totalPayback = loan.loanPrincipalAmount + interest;
+        if (totalPayback > loan.maximumRepaymentAmount) {
+            totalPayback = loan.maximumRepaymentAmount;
+            interest = totalPayback - loan.loanPrincipalAmount;
+        }
+
+        uint256 protocolFee = interest * 100 / 10000; // 1% of interest
+        uint256 lenderPayment = totalPayback - protocolFee;
+
+        // Transfer total payment from borrower
+        IERC20(loan.loanERC20Address).transferFrom(msg.sender, address(this), protocolFee);
+
+        // Transfer payment to lender
+        address lender = ownerOf(_loanId);
+        IERC20(loan.loanERC20Address).transferFrom(msg.sender, lender, lenderPayment);
+
+        // Return NFT to borrower
+        IERC721(loan.nftCollateralContract).transferFrom(address(this), loan.borrower, loan.nftCollateralId);
+
+        _burn(_loanId);
+        loan.status = LibDiamond.LoanStatus.Repaid;
+
+        emit Events.LoanRepaid(_loanId, msg.sender, lender, totalPayback, protocolFee, loan.nftCollateralId);
+    }
+
+    function liquidateOverdueLoan(uint256 _loanId) external {
+        LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
+        LibDiamond.Loan storage loan = l.loans[_loanId];
+
+        require(loan.status == LibDiamond.LoanStatus.Active, Errors.LoanNotactive());
+        require(block.timestamp > loan.loanStartTime + loan.loanDuration, Errors.LoanNotOverdue());
+        require(ownerOf(_loanId) == msg.sender, Errors.NotLoanOwner());
+
+        // Transfer NFT to lender
+        IERC721(loan.nftCollateralContract).transferFrom(address(this), msg.sender, loan.nftCollateralId);
+
+        // Burn loan NFT
+        _burn(_loanId);
+
+        loan.status = LibDiamond.LoanStatus.Liquidated;
+
+        emit Events.LoanLiquidated(_loanId, loan.borrower, msg.sender, loan.nftCollateralId);
+    }
+
+    function withdrawProtocolFees(address tokenAddress) external {
+        LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
+        LibDiamond.enforceIsContractOwner();
+        uint256 amount = IERC20(tokenAddress).balanceOf(address(this));
+        IERC20(tokenAddress).transfer(msg.sender, amount);
+
+        emit Events.ProtocolFeesWithdrawn(tokenAddress, amount, msg.sender);
+    }
+
     function getListing(uint256 listingId) external view listingExists(listingId) returns (LibDiamond.Listing memory) {
         LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
         return l.listings[listingId];
@@ -217,6 +286,11 @@ contract NFTLendFacet is ERC721Facet {
     function getOffer(uint256 offerId) external view offerExists(offerId) returns (LibDiamond.Offer memory) {
         LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
         return l.offers[offerId];
+    }
+
+    function getLoan(uint256 loanId) external view loanExists(loanId) returns (LibDiamond.Loan memory) {
+        LibDiamond.DiamondStorage storage l = LibDiamond.diamondStorage();
+        return l.loans[loanId];
     }
 
     function _createLoan(
@@ -276,5 +350,13 @@ contract NFTLendFacet is ERC721Facet {
             nftCollateralContract,
             loanERC20Address
         );
+    }
+
+    function _calculateInterest(uint256 principal, uint32 interestRate, uint256 timeElapsed)
+        private
+        pure
+        returns (uint256)
+    {
+        return (principal * interestRate * timeElapsed) / (365 days * 100);
     }
 }

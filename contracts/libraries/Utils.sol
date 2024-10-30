@@ -46,6 +46,19 @@ library Events {
         uint256 loanPrincipalAmount,
         uint256 maximumRepaymentAmount
     );
+    event LoanRepaid(
+        uint256 indexed loanId,
+        address indexed borrower,
+        address indexed lender,
+        uint256 totalPayback,
+        uint256 protocolFee,
+        uint256 nftCollateralId
+    );
+
+    event ProtocolFeesWithdrawn(address indexed token, uint256 amount, address indexed owner);
+    event LoanLiquidated(
+        uint256 indexed loanId, address indexed borrower, address indexed lender, uint256 nftCollateralId
+    );
 }
 
 library Errors {
@@ -68,4 +81,8 @@ library Errors {
     error InsufficientERC20Balance();
     error OfferNotActive();
     error NotOfferOwner();
+    error LoanNotactive();
+    error NotLoanBorrower();
+    error NotLoanOwner();
+    error LoanNotOverdue();
 }
