@@ -1,39 +1,48 @@
-[![Mentioned in Awesome Foundry](https://awesome.re/mentioned-badge-flat.svg)](https://github.com/crisgarner/awesome-foundry)
-# Foundry + Hardhat Diamonds
+# NFTLend Protocol
 
-This is a mimimal template for [Diamonds](https://github.com/ethereum/EIPs/issues/2535) which allows facet selectors to be generated on the go in solidity tests!
+NFTLend is a decentralized P2P lending protocol that facilitates NFT-collateralized loans on the blockchain. The protocol enables NFT holders to unlock liquidity from their assets while retaining eventual ownership.
 
-## Installation
+## Core Features
 
-- Clone this repo
-- Install dependencies
+### 🎨 Listing an NFT (Borrower)
+- Create a LISTING by putting up your NFT as loan collateral
+- Customize loan terms including principal amount, maximum repayment, and duration
+- Maintain ownership until loan terms are accepted
 
-```bash
-$ yarn && forge update
-```
+### 💰 Making an Offer (Lender) 
+- Browse active NFT listings and make competitive loan OFFERS
+- Set custom terms including principal amount, interest rate, and duration
+- Multiple lenders can compete to provide the best terms
 
-### Compile
+### 🤝 Begin Loan (Borrower)
+- Accept your preferred loan offer from competing lenders
+- NFT moves into secure protocol escrow
+- Receive loan principal instantly
+- Lender gets an NFT representing the active loan
 
-```bash
-$ npx hardhat compile
-```
+### ✨ Repay Loan (Borrower)
+- Repay principal + interest before loan expiry
+- Small 1% protocol fee on interest earned
+- NFT returned immediately from escrow
+- Loan NFT burned on completion
 
-## Deployment
+### ⚡ Liquidate Loan (Lender)
+- Claim NFT collateral after loan expiry and non-payment
+- Automated liquidation process
+- Loan NFT burned on completion
 
-### Hardhat
+## Protocol Administration
 
-```bash
-$ npx hardhat run scripts/deploy.js
-```
+### Token Management
+- ERC20 token whitelisting for loan payments
+- ERC721 collection whitelisting for collateral
+- Protocol fee collection and withdrawal
 
-### Foundry
+### Parameters
+- Maximum loan duration
+- Maximum number of active loans
+- Protocol fee percentage
 
-```bash
-$ forge t
-```
+## License
 
-`Note`: A lot of improvements are still needed so contributions are welcome!!
-
-Bonus: The [DiamondLoupefacet](contracts/facets/DiamondLoupeFacet.sol) uses an updated [LibDiamond](contracts/libraries//LibDiamond.sol) which utilises solidity custom errors to make debugging easier especially when upgrading diamonds. Take it for a spin!!
-
-Need some more clarity? message me [on twitter](https://twitter.com/Timidan_x), Or join the [EIP-2535 Diamonds Discord server](https://discord.gg/kQewPw2)
+MIT License
