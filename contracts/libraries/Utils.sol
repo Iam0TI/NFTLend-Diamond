@@ -59,6 +59,8 @@ library Events {
     event LoanLiquidated(
         uint256 indexed loanId, address indexed borrower, address indexed lender, uint256 nftCollateralId
     );
+    event ERC20Whitelisted(address indexed token, bool status);
+    event ERC721Whitelisted(address indexed token, bool status);
 }
 
 library Errors {
@@ -85,4 +87,5 @@ library Errors {
     error NotLoanBorrower();
     error NotLoanOwner();
     error LoanNotOverdue();
+    error AddressZero();
 }
