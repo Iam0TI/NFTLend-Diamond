@@ -26,7 +26,7 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
         //upgrade diamond with facets
 
         //build cut struct
-        FacetCut[] memory cut = new FacetCut[](2);
+        FacetCut[] memory cut = new FacetCut[](4);
 
         cut[0] = (
             FacetCut({
@@ -41,6 +41,20 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
                 facetAddress: address(ownerF),
                 action: FacetCutAction.Add,
                 functionSelectors: generateSelectors("OwnershipFacet")
+            })
+        );
+        cut[3] = (
+            FacetCut({
+                facetAddress: address(ownerF),
+                action: FacetCutAction.Add,
+                functionSelectors: generateSelectors("NFTLendFacet")
+            })
+        );
+        cut[2] = (
+            FacetCut({
+                facetAddress: address(ownerF),
+                action: FacetCutAction.Add,
+                functionSelectors: generateSelectors("WhitelistedFacet")
             })
         );
 
