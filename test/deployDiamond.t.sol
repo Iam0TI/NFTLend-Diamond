@@ -5,6 +5,8 @@ import "../contracts/interfaces/IDiamondCut.sol";
 import "../contracts/facets/DiamondCutFacet.sol";
 import "../contracts/facets/DiamondLoupeFacet.sol";
 import "../contracts/facets/OwnershipFacet.sol";
+import "../contracts/facets/NFTLendFacet.sol";
+import "../contracts/facets/WhitelistFacet.sol";
 import "../contracts/Diamond.sol";
 
 import "./helpers/DiamondUtils.sol";
@@ -15,6 +17,8 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
     DiamondCutFacet dCutFacet;
     DiamondLoupeFacet dLoupe;
     OwnershipFacet ownerF;
+    NFTLendFacet public nftLend;
+    WhitelistedFacet public whiteListF;
 
     function testDeployDiamond() public {
         //deploy facets
@@ -22,6 +26,8 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
         diamond = new Diamond(address(this), address(dCutFacet), "NFTLEND", "NTFLEND");
         dLoupe = new DiamondLoupeFacet();
         ownerF = new OwnershipFacet();
+        nftLend = new NFTLendFacet();
+        whiteListF = new WhitelistedFacet();
 
         //upgrade diamond with facets
 
@@ -45,14 +51,14 @@ contract DiamondDeployer is DiamondUtils, IDiamondCut {
         );
         cut[3] = (
             FacetCut({
-                facetAddress: address(ownerF),
+                facetAddress: address(nftLend),
                 action: FacetCutAction.Add,
                 functionSelectors: generateSelectors("NFTLendFacet")
             })
         );
         cut[2] = (
             FacetCut({
-                facetAddress: address(ownerF),
+                facetAddress: address(whiteListF),
                 action: FacetCutAction.Add,
                 functionSelectors: generateSelectors("WhitelistedFacet")
             })
